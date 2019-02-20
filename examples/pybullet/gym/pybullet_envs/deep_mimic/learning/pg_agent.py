@@ -13,10 +13,10 @@ import pybullet_utils.mpi_util as MPIUtil
 import pybullet_utils.math_util as MathUtil
 from pybullet_envs.deep_mimic.env.action_space import ActionSpace
 from pybullet_envs.deep_mimic.env.env import Env
-
 '''
 Policy Gradient Agent
 '''
+
 
 class PGAgent(TFAgent):
     NAME = 'PG'
@@ -31,10 +31,10 @@ class PGAgent(TFAgent):
     CRITIC_STEPSIZE_KEY = 'CriticStepsize'
     CRITIC_MOMENTUM_KEY = 'CriticMomentum'
     CRITIC_WEIGHT_DECAY_KEY = 'CriticWeightDecay'
-    
+
     EXP_ACTION_FLAG = 1 << 0
 
-    def __init__(self, world, id, json_data): 
+    def __init__(self, world, id, json_data):
         self._exp_action = False
         super().__init__(world, id, json_data)
         return
@@ -60,18 +60,21 @@ class PGAgent(TFAgent):
 
         actor_net_name = json_data[self.ACTOR_NET_KEY]
         critic_net_name = json_data[self.CRITIC_NET_KEY]
-        actor_init_output_scale = 1 if (self.ACTOR_INIT_OUTPUT_SCALE_KEY not in json_data) else json_data[self.ACTOR_INIT_OUTPUT_SCALE_KEY]
-        
+        actor_init_output_scale = 1 if (self.ACTOR_INIT_OUTPUT_SCALE_KEY not in json_data
+                                        ) else json_data[self.ACTOR_INIT_OUTPUT_SCALE_KEY]
+
         s_size = self.get_state_size()
         g_size = self.get_goal_size()
         a_size = self.get_action_size()
 
         # setup input tensors
-        self.s_tf = tf.placeholder(tf.float32, shape=[None, s_size], name="s") # observations
-        self.tar_val_tf = tf.placeholder(tf.float32, shape=[None], name="tar_val") # target value s
-        self.adv_tf = tf.placeholder(tf.float32, shape=[None], name="adv") # advantage
-        self.a_tf = tf.placeholder(tf.float32, shape=[None, a_size], name="a") # target actions
-        self.g_tf = tf.placeholder(tf.float32, shape=([None, g_size] if self.has_goal() else None), name="g") # goals
+        self.s_tf = tf.placeholder(tf.float32, shape=[None, s_size], name="s")  # observations
+        self.tar_val_tf = tf.placeholder(
+            tf.float32, shape=[None], name="tar_val")  # target value s
+        self.adv_tf = tf.placeholder(tf.float32, shape=[None], name="adv")  # advantage
+        self.a_tf = tf.placeholder(tf.float32, shape=[None, a_size], name="a")  # target actions
+        self.g_tf = tf.placeholder(
+            tf.float32, shape=([None, g_size] if self.has_goal() else None), name="g")  # goals
 
         with tf.variable_scope('main'):
             with tf.variable_scope('actor'):
@@ -108,15 +111,18 @@ class PGAgent(TFAgent):
         return
 
     def _build_losses(self, json_data):
-        actor_weight_decay = 0 if (self.ACTOR_WEIGHT_DECAY_KEY not in json_data) else json_data[self.ACTOR_WEIGHT_DECAY_KEY]
-        critic_weight_decay = 0 if (self.CRITIC_WEIGHT_DECAY_KEY not in json_data) else json_data[self.CRITIC_WEIGHT_DECAY_KEY]
+        actor_weight_decay = 0 if (self.ACTOR_WEIGHT_DECAY_KEY not in json_data
+                                   ) else json_data[self.ACTOR_WEIGHT_DECAY_KEY]
+        critic_weight_decay = 0 if (self.CRITIC_WEIGHT_DECAY_KEY not in json_data
+                                    ) else json_data[self.CRITIC_WEIGHT_DECAY_KEY]
 
-        norm_val_diff = self.val_norm.normalize_tf(self.tar_val_tf) - self.val_norm.normalize_tf(self.critic_tf)
+        norm_val_diff = self.val_norm.normalize_tf(self.tar_val_tf) - self.val_norm.normalize_tf(
+            self.critic_tf)
         self.critic_loss_tf = 0.5 * tf.reduce_mean(tf.square(norm_val_diff))
 
         if (critic_weight_decay != 0):
             self.critic_loss_tf += critic_weight_decay * self._weight_decay_loss('main/critic')
-        
+
         norm_a_mean_tf = self.a_norm.normalize_tf(self.actor_tf)
         norm_a_diff = self.a_norm.normalize_tf(self.a_tf) - norm_a_mean_tf
 
@@ -132,22 +138,28 @@ class PGAgent(TFAgent):
 
         if (actor_weight_decay != 0):
             self.actor_loss_tf += actor_weight_decay * self._weight_decay_loss('main/actor')
-        
+
         return
 
     def _build_solvers(self, json_data):
-        actor_stepsize = 0.001 if (self.ACTOR_STEPSIZE_KEY not in json_data) else json_data[self.ACTOR_STEPSIZE_KEY]
-        actor_momentum = 0.9 if (self.ACTOR_MOMENTUM_KEY not in json_data) else json_data[self.ACTOR_MOMENTUM_KEY]
-        critic_stepsize = 0.01 if (self.CRITIC_STEPSIZE_KEY not in json_data) else json_data[self.CRITIC_STEPSIZE_KEY]
-        critic_momentum = 0.9 if (self.CRITIC_MOMENTUM_KEY not in json_data) else json_data[self.CRITIC_MOMENTUM_KEY]
-        
+        actor_stepsize = 0.001 if (
+            self.ACTOR_STEPSIZE_KEY not in json_data) else json_data[self.ACTOR_STEPSIZE_KEY]
+        actor_momentum = 0.9 if (
+            self.ACTOR_MOMENTUM_KEY not in json_data) else json_data[self.ACTOR_MOMENTUM_KEY]
+        critic_stepsize = 0.01 if (
+            self.CRITIC_STEPSIZE_KEY not in json_data) else json_data[self.CRITIC_STEPSIZE_KEY]
+        critic_momentum = 0.9 if (
+            self.CRITIC_MOMENTUM_KEY not in json_data) else json_data[self.CRITIC_MOMENTUM_KEY]
+
         critic_vars = self._tf_vars('main/critic')
-        critic_opt = tf.train.MomentumOptimizer(learning_rate=critic_stepsize, momentum=critic_momentum)
+        critic_opt = tf.train.MomentumOptimizer(
+            learning_rate=critic_stepsize, momentum=critic_momentum)
         self.critic_grad_tf = tf.gradients(self.critic_loss_tf, critic_vars)
         self.critic_solver = MPISolver(self.sess, critic_opt, critic_vars)
 
         actor_vars = self._tf_vars('main/actor')
-        actor_opt = tf.train.MomentumOptimizer(learning_rate=actor_stepsize, momentum=actor_momentum)
+        actor_opt = tf.train.MomentumOptimizer(
+            learning_rate=actor_stepsize, momentum=actor_momentum)
         self.actor_grad_tf = tf.gradients(self.actor_loss_tf, actor_vars)
         self.actor_solver = MPISolver(self.sess, actor_opt, actor_vars)
 
@@ -159,24 +171,28 @@ class PGAgent(TFAgent):
         if (self.has_goal()):
             norm_g_tf = self.g_norm.normalize_tf(self.g_tf)
             input_tfs += [norm_g_tf]
-        
+
         h = NetBuilder.build_net(net_name, input_tfs)
-        norm_a_tf = tf.layers.dense(inputs=h, units=self.get_action_size(), activation=None,
-                                kernel_initializer=tf.random_uniform_initializer(minval=-init_output_scale, maxval=init_output_scale))
-        
+        norm_a_tf = tf.layers.dense(
+            inputs=h,
+            units=self.get_action_size(),
+            activation=None,
+            kernel_initializer=tf.random_uniform_initializer(
+                minval=-init_output_scale, maxval=init_output_scale))
+
         a_tf = self.a_norm.unnormalize_tf(norm_a_tf)
         return a_tf
-    
+
     def _build_net_critic(self, net_name):
         norm_s_tf = self.s_norm.normalize_tf(self.s_tf)
         input_tfs = [norm_s_tf]
         if (self.has_goal()):
             norm_g_tf = self.g_norm.normalize_tf(self.g_tf)
             input_tfs += [norm_g_tf]
-        
+
         h = NetBuilder.build_net(net_name, input_tfs)
-        norm_val_tf = tf.layers.dense(inputs=h, units=1, activation=None,
-                                kernel_initializer=TFUtil.xavier_initializer);
+        norm_val_tf = tf.layers.dense(
+            inputs=h, units=1, activation=None, kernel_initializer=TFUtil.xavier_initializer)
 
         norm_val_tf = tf.reshape(norm_val_tf, [-1])
         val_tf = self.val_norm.unnormalize_tf(norm_val_tf)
@@ -213,31 +229,26 @@ class PGAgent(TFAgent):
         return a, logp
 
     def _enable_stoch_policy(self):
-        return self.enable_training and (self._mode == self.Mode.TRAIN or self._mode == self.Mode.TRAIN_END)
+        return self.enable_training and (self._mode == self.Mode.TRAIN
+                                         or self._mode == self.Mode.TRAIN_END)
 
     def _eval_actor(self, s, g):
         s = np.reshape(s, [-1, self.get_state_size()])
         g = np.reshape(g, [-1, self.get_goal_size()]) if self.has_goal() else None
-          
-        feed = {
-            self.s_tf : s,
-            self.g_tf : g
-        }
+
+        feed = {self.s_tf: s, self.g_tf: g}
 
         a = self.actor_tf.eval(feed)
         return a
-    
+
     def _eval_critic(self, s, g):
         with self.sess.as_default(), self.graph.as_default():
             s = np.reshape(s, [-1, self.get_state_size()])
             g = np.reshape(g, [-1, self.get_goal_size()]) if self.has_goal() else None
 
-            feed = {
-                self.s_tf : s,
-                self.g_tf : g
-            }
+            feed = {self.s_tf: s, self.g_tf: g}
 
-            val = self.critic_tf.eval(feed)    
+            val = self.critic_tf.eval(feed)
         return val
 
     def _record_flags(self):
@@ -256,10 +267,10 @@ class PGAgent(TFAgent):
 
         critic_stepsize = self.critic_solver.get_stepsize()
         actor_stepsize = self.actor_solver.get_stepsize()
-        
+
         self.logger.log_tabular('Critic_Loss', critic_loss)
         self.logger.log_tabular('Critic_Stepsize', critic_stepsize)
-        self.logger.log_tabular('Actor_Loss', actor_loss) 
+        self.logger.log_tabular('Actor_Loss', actor_loss)
         self.logger.log_tabular('Actor_Stepsize', actor_stepsize)
 
         return
@@ -268,20 +279,16 @@ class PGAgent(TFAgent):
         idx = self.replay_buffer.sample(self._local_mini_batch_size)
         s = self.replay_buffer.get('states', idx)
         g = self.replay_buffer.get('goals', idx) if self.has_goal() else None
-        
+
         tar_V = self._calc_updated_vals(idx)
         tar_V = np.clip(tar_V, self.val_min, self.val_max)
 
-        feed = {
-            self.s_tf: s,
-            self.g_tf: g,
-            self.tar_val_tf: tar_V
-        }
+        feed = {self.s_tf: s, self.g_tf: g, self.tar_val_tf: tar_V}
 
         loss, grads = self.sess.run([self.critic_loss_tf, self.critic_grad_tf], feed)
         self.critic_solver.update(grads)
         return loss
-    
+
     def _update_actor(self):
         key = self.EXP_ACTION_FLAG
         idx = self.replay_buffer.sample_filtered(self._local_mini_batch_size, key)
@@ -295,12 +302,7 @@ class PGAgent(TFAgent):
         V_old = self._eval_critic(s, g)
         adv = V_new - V_old
 
-        feed = {
-            self.s_tf: s,
-            self.g_tf: g,
-            self.a_tf: a,
-            self.adv_tf: adv
-        }
+        feed = {self.s_tf: s, self.g_tf: g, self.a_tf: a, self.adv_tf: adv}
 
         loss, grads = self.sess.run([self.actor_loss_tf, self.actor_grad_tf], feed)
         self.actor_solver.update(grads)
@@ -320,8 +322,8 @@ class PGAgent(TFAgent):
             is_end = self.replay_buffer.is_path_end(idx)
             is_fail = self.replay_buffer.check_terminal_flag(idx, Env.Terminate.Fail)
             is_succ = self.replay_buffer.check_terminal_flag(idx, Env.Terminate.Succ)
-            is_fail = np.logical_and(is_end, is_fail) 
-            is_succ = np.logical_and(is_end, is_succ) 
+            is_fail = np.logical_and(is_end, is_fail)
+            is_succ = np.logical_and(is_end, is_succ)
 
             V_next = self._eval_critic(s_next, g_next)
             V_next[is_fail] = self.val_fail
@@ -331,7 +333,7 @@ class PGAgent(TFAgent):
         return new_V
 
     def _calc_action_logp(self, norm_action_deltas):
-        # norm action delta are for the normalized actions (scaled by self.a_norm.std) 
+        # norm action delta are for the normalized actions (scaled by self.a_norm.std)
         stdev = self.exp_params_curr.noise
         assert stdev > 0
 

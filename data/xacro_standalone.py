@@ -93,6 +93,8 @@ def fixed_writexml(self, writer, indent="", addindent="", newl=""):
         writer.write("%s</%s>%s" % (indent, self.tagName, newl))
     else:
         writer.write("/>%s" % (newl))
+
+
 # replace minidom's function with ours
 xml.dom.minidom.Element.writexml = fixed_writexml
 
@@ -196,6 +198,7 @@ def child_nodes(elt):
         yield c
         c = c.nextSibling
 
+
 all_includes = []
 
 # Deprecated message for <include> tags that don't have <xacro:include> prepended:
@@ -227,8 +230,8 @@ def process_includes(doc, base_dir):
                 # with Gazebo's <uri> element, but it could be anything. also, make sure the child
                 # nodes aren't just a single Text node, which is still considered a deprecated
                 # instance
-                if elt.childNodes and not (len(elt.childNodes) == 1 and
-                                           elt.childNodes[0].nodeType == elt.TEXT_NODE):
+                if elt.childNodes and not (len(elt.childNodes) == 1
+                                           and elt.childNodes[0].nodeType == elt.TEXT_NODE):
                     # this is not intended to be a xacro element, so we can ignore it
                     is_include = False
                 else:
@@ -259,10 +262,11 @@ def process_includes(doc, base_dir):
                             included = parse(f)
                         except Exception as e:
                             raise XacroException(
-                                "included file \"%s\" generated an error during XML parsing: %s"
-                                % (filename, str(e)))
+                                "included file \"%s\" generated an error during XML parsing: %s" %
+                                (filename, str(e)))
                 except IOError as e:
-                    raise XacroException("included file \"%s\" could not be opened: %s" % (filename, str(e)))
+                    raise XacroException(
+                        "included file \"%s\" could not be opened: %s" % (filename, str(e)))
 
                 # Replaces the include tag with the elements of the included file
                 for c in child_nodes(included.documentElement):
@@ -454,12 +458,13 @@ def eval_expr(lex, symbols):
 
 def eval_text(text, symbols):
     def handle_expr(s):
-        lex = QuickLexer(IGNORE=r"\s+",
-                         NUMBER=r"(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?",
-                         SYMBOL=r"[a-zA-Z_]\w*",
-                         OP=r"[\+\-\*/^]",
-                         LPAREN=r"\(",
-                         RPAREN=r"\)")
+        lex = QuickLexer(
+            IGNORE=r"\s+",
+            NUMBER=r"(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?",
+            SYMBOL=r"[a-zA-Z_]\w*",
+            OP=r"[\+\-\*/^]",
+            LPAREN=r"\(",
+            RPAREN=r"\)")
         lex.lex(s)
         return eval_expr(lex, symbols)
 
@@ -467,10 +472,11 @@ def eval_text(text, symbols):
         return ("$(%s)" % s)
 
     results = []
-    lex = QuickLexer(DOLLAR_DOLLAR_BRACE=r"\$\$+\{",
-                     EXPR=r"\$\{[^\}]*\}",
-                     EXTENSION=r"\$\([^\)]*\)",
-                     TEXT=r"([^\$]|\$[^{(]|\$$)+")
+    lex = QuickLexer(
+        DOLLAR_DOLLAR_BRACE=r"\$\$+\{",
+        EXPR=r"\$\{[^\}]*\}",
+        EXTENSION=r"\$\([^\)]*\)",
+        TEXT=r"([^\$]|\$[^{(]|\$$)+")
     lex.lex(text)
     while lex.peek():
         if lex.peek()[0] == lex.EXPR:
@@ -508,7 +514,7 @@ def eval_all(root, macros, symbols):
                         defaultmap[splitParam[0]] = splitParam[1]
                         params.remove(param)
                         params.append(splitParam[0])
-                        
+
                     elif len(splitParam) != 1:
                         raise XacroException("Invalid parameter definition")
 
@@ -516,8 +522,9 @@ def eval_all(root, macros, symbols):
                 scoped = Table(symbols)
                 for name, value in node.attributes.items():
                     if not name in params:
-                        raise XacroException("Invalid parameter \"%s\" while expanding macro \"%s\"" %
-                                             (str(name), str(node.tagName)))
+                        raise XacroException(
+                            "Invalid parameter \"%s\" while expanding macro \"%s\"" %
+                            (str(name), str(node.tagName)))
                     params.remove(name)
                     scoped[name] = eval_text(value, symbols)
 
@@ -530,7 +537,8 @@ def eval_all(root, macros, symbols):
                         while block and block.nodeType != xml.dom.Node.ELEMENT_NODE:
                             block = block.nextSibling
                         if not block:
-                            raise XacroException("Not enough blocks while evaluating macro %s" % str(node.tagName))
+                            raise XacroException(
+                                "Not enough blocks while evaluating macro %s" % str(node.tagName))
                         params.remove(param)
                         scoped[param] = block
                         block = block.nextSibling
@@ -559,7 +567,7 @@ def eval_all(root, macros, symbols):
                 default = node.getAttribute('default')
                 if default and name not in substitution_args_context['arg']:
                     substitution_args_context['arg'][name] = default
-                
+
                 node.parentNode.removeChild(node)
                 node = None
 
@@ -585,12 +593,14 @@ def eval_all(root, macros, symbols):
                 node = None
             elif node.tagName in ['if', 'xacro:if', 'unless', 'xacro:unless']:
                 value = eval_text(node.getAttribute('value'), symbols)
-                try: 
+                try:
                     if value == 'true': keep = True
                     elif value == 'false': keep = False
                     else: keep = float(value)
                 except ValueError:
-                    raise XacroException("Xacro conditional evaluated to \"%s\". Acceptable evaluations are one of [\"1\",\"true\",\"0\",\"false\"]" % value)
+                    raise XacroException(
+                        "Xacro conditional evaluated to \"%s\". Acceptable evaluations are one of [\"1\",\"true\",\"0\",\"false\"]"
+                        % value)
                 if node.tagName in ['unless', 'xacro:unless']: keep = not keep
                 if keep:
                     for e in list(child_nodes(node)):
@@ -630,11 +640,13 @@ def print_usage(exit_code=0):
 def set_substitution_args_context(context={}):
     substitution_args_context['arg'] = context
 
+
 def open_output(output_filename):
     if output_filename is None:
         return sys.stdout
     else:
-        return open(output_filename, 'w') 
+        return open(output_filename, 'w')
+
 
 def main():
     try:
@@ -651,7 +663,7 @@ def main():
         if o == '-h':
             print_usage(0)
         elif o == '-o':
-            output_filename = a 
+            output_filename = a
         elif o == '--deps':
             just_deps = True
         elif o == '--includes':
@@ -689,17 +701,21 @@ def main():
         print()
     else:
         eval_self_contained(doc)
-        banner = [xml.dom.minidom.Comment(c) for c in
-                  [" %s " % ('=' * 83),
-                   " |    This document was autogenerated by xacro from %-30s | " % args[0],
-                   " |    EDITING THIS FILE BY HAND IS NOT RECOMMENDED  %-30s | " % "",
-                   " %s " % ('=' * 83)]]
+        banner = [
+            xml.dom.minidom.Comment(c) for c in [
+                " %s " % ('=' * 83),
+                " |    This document was autogenerated by xacro from %-30s | " % args[0],
+                " |    EDITING THIS FILE BY HAND IS NOT RECOMMENDED  %-30s | " % "",
+                " %s " % ('=' * 83)
+            ]
+        ]
         first = doc.firstChild
         for comment in banner:
             doc.insertBefore(comment, first)
 
         open_output(output_filename).write(doc.toprettyxml(indent='  '))
         print()
+
 
 if __name__ == '__main__':
     main()

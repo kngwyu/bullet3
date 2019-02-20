@@ -7,8 +7,8 @@ def register(id, *args, **kvargs):
     else:
         return gym.envs.registration.register(id, *args, **kvargs)
 
-# ------------bullet-------------
 
+# ------------bullet-------------
 
 register(
     id='HumanoidDeepMimicBulletEnv-v1',
@@ -38,7 +38,6 @@ register(
     reward_threshold=5.0,
 )
 
-
 register(
     id='MinitaurReactiveEnv-v0',
     entry_point='pybullet_envs.minitaur.envs:MinitaurReactiveEnv',
@@ -46,14 +45,12 @@ register(
     reward_threshold=5.0,
 )
 
-
 register(
     id='MinitaurBallGymEnv-v0',
     entry_point='pybullet_envs.minitaur.envs:MinitaurBallGymEnv',
     timestep_limit=1000,
     reward_threshold=5.0,
 )
-
 
 register(
     id='MinitaurTrottingEnv-v0',
@@ -83,7 +80,6 @@ register(
     reward_threshold=5.0,
 )
 
-
 register(
     id='RacecarBulletEnv-v0',
     entry_point='pybullet_envs.bullet:RacecarGymEnv',
@@ -91,14 +87,12 @@ register(
     reward_threshold=5.0,
 )
 
-
 register(
     id='RacecarZedBulletEnv-v0',
     entry_point='pybullet_envs.bullet:RacecarZEDGymEnv',
     timestep_limit=1000,
     reward_threshold=5.0,
 )
-
 
 register(
     id='KukaBulletEnv-v0',
@@ -174,48 +168,41 @@ register(
     id='Walker2DBulletEnv-v0',
     entry_point='pybullet_envs.gym_locomotion_envs:Walker2DBulletEnv',
     max_episode_steps=1000,
-    reward_threshold=2500.0
-)
+    reward_threshold=2500.0)
 
 register(
     id='HalfCheetahBulletEnv-v0',
     entry_point='pybullet_envs.gym_locomotion_envs:HalfCheetahBulletEnv',
     max_episode_steps=1000,
-    reward_threshold=3000.0
-)
+    reward_threshold=3000.0)
 
 register(
     id='AntBulletEnv-v0',
     entry_point='pybullet_envs.gym_locomotion_envs:AntBulletEnv',
     max_episode_steps=1000,
-    reward_threshold=2500.0
-)
+    reward_threshold=2500.0)
 
 register(
     id='HopperBulletEnv-v0',
     entry_point='pybullet_envs.gym_locomotion_envs:HopperBulletEnv',
     max_episode_steps=1000,
-    reward_threshold=2500.0
-)
+    reward_threshold=2500.0)
 
 register(
     id='HumanoidBulletEnv-v0',
     entry_point='pybullet_envs.gym_locomotion_envs:HumanoidBulletEnv',
-    max_episode_steps=1000
-)
+    max_episode_steps=1000)
 
 register(
     id='HumanoidFlagrunBulletEnv-v0',
     entry_point='pybullet_envs.gym_locomotion_envs:HumanoidFlagrunBulletEnv',
     max_episode_steps=1000,
-    reward_threshold=2000.0
-)
+    reward_threshold=2000.0)
 
 register(
     id='HumanoidFlagrunHarderBulletEnv-v0',
     entry_point='pybullet_envs.gym_locomotion_envs:HumanoidFlagrunHarderBulletEnv',
-    max_episode_steps=1000
-)
+    max_episode_steps=1000)
 
 #register(
 #	id='AtlasBulletEnv-v0',
@@ -225,5 +212,5 @@ register(
 
 
 def getList():
-    btenvs = ['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.find('Bullet')>=0]
+    btenvs = ['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.find('Bullet') >= 0]
     return btenvs

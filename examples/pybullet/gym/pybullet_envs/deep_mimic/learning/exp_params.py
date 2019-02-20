@@ -2,6 +2,7 @@ import json
 import numpy as np
 import pybullet_utils.math_util as MathUtil
 
+
 class ExpParams(object):
     RATE_KEY = 'Rate'
     INIT_ACTION_RATE_KEY = 'InitActionRate'
@@ -47,7 +48,8 @@ class ExpParams(object):
     def lerp(self, other, t):
         lerp_params = ExpParams()
         lerp_params.rate = MathUtil.lerp(self.rate, other.rate, t)
-        lerp_params.init_action_rate = MathUtil.lerp(self.init_action_rate, other.init_action_rate, t)
+        lerp_params.init_action_rate = MathUtil.lerp(self.init_action_rate, other.init_action_rate,
+                                                     t)
         lerp_params.noise = MathUtil.lerp(self.noise, other.noise, t)
         lerp_params.noise_internal = MathUtil.lerp(self.noise_internal, other.noise_internal, t)
         lerp_params.temp = MathUtil.log_lerp(self.temp, other.temp, t)
