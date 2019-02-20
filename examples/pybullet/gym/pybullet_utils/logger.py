@@ -1,5 +1,4 @@
 import pybullet_utils.mpi_util as MPIUtil
-
 """
 
 Some simple logging functionality, inspired by rllab's logging.
@@ -17,7 +16,9 @@ A['EpRewMean']
 
 import os.path as osp, shutil, time, atexit, os, subprocess
 
+
 class Logger:
+
     def print2(str):
         if (MPIUtil.is_root_proc()):
             print(str)
@@ -47,7 +48,7 @@ class Logger:
         self.log_headers = []
         self.log_current_row = {}
 
-        output_path = filename or "output/log_%i.txt"%int(time.time())
+        output_path = filename or "output/log_%i.txt" % int(time.time())
 
         out_dir = os.path.dirname(output_path)
         if not os.path.exists(out_dir) and MPIUtil.is_root_proc():
@@ -69,7 +70,7 @@ class Logger:
         if self.first_row and key not in self.log_headers:
             self.log_headers.append(key)
         else:
-            assert key in self.log_headers, "Trying to introduce a new key %s that you didn't include in the first iteration"%key
+            assert key in self.log_headers, "Trying to introduce a new key %s that you didn't include in the first iteration" % key
         self.log_current_row[key] = val
         return
 
@@ -82,16 +83,16 @@ class Logger:
         """
         if (MPIUtil.is_root_proc()):
             vals = []
-            Logger.print2("-"*37)
+            Logger.print2("-" * 37)
             for key in self.log_headers:
                 val = self.log_current_row.get(key, "")
                 if isinstance(val, float):
-                    valstr = "%8.3g"%val
+                    valstr = "%8.3g" % val
                 elif isinstance(val, int):
                     valstr = str(val)
-                else: 
+                else:
                     valstr = val
-                Logger.print2("| %15s | %15s |"%(key, valstr))
+                Logger.print2("| %15s | %15s |" % (key, valstr))
                 vals.append(val)
             Logger.print2("-" * 37)
         return
@@ -108,18 +109,18 @@ class Logger:
             for key in self.log_headers:
                 val = self.log_current_row.get(key, "")
                 vals.append(val)
-            
+
             if self.output_file is not None:
                 if self.first_row:
                     header_str = self._dump_str_template.format(*self.log_headers)
                     self.output_file.write(header_str + "\n")
 
-                val_str = self._dump_str_template.format(*map(str,vals))
+                val_str = self._dump_str_template.format(*map(str, vals))
                 self.output_file.write(val_str + "\n")
                 self.output_file.flush()
 
         self.log_current_row.clear()
-        self.first_row=False
+        self.first_row = False
         return
 
     def _build_str_template(self):

@@ -3,14 +3,16 @@ import copy
 import pybullet_utils.mpi_util as MPIUtil
 from pybullet_utils.logger import Logger
 
+
 class Normalizer(object):
-    CHECK_SYNC_COUNT = 50000 # check synchronization after a certain number of entries
+    CHECK_SYNC_COUNT = 50000  # check synchronization after a certain number of entries
 
     # these group IDs must be the same as those in CharController.h
     NORM_GROUP_SINGLE = 0
     NORM_GROUP_NONE = -1
 
     class Group(object):
+
         def __init__(self, id, indices):
             self.id = id
             self.indices = indices
@@ -34,7 +36,7 @@ class Normalizer(object):
         size = self.get_size()
         is_array = isinstance(x, np.ndarray)
         if not is_array:
-            assert(size == 1)
+            assert (size == 1)
             x = np.array([[x]])
 
         assert x.shape[-1] == size, \
@@ -78,15 +80,15 @@ class Normalizer(object):
     def set_mean_std(self, mean, std):
         size = self.get_size()
         is_array = isinstance(mean, np.ndarray) and isinstance(std, np.ndarray)
-        
+
         if not is_array:
-            assert(size == 1)
+            assert (size == 1)
             mean = np.array([mean])
             std = np.array([std])
 
         assert len(mean) == size and len(std) == size, \
             Logger.print2('Normalizer shape mismatch, expecting size {:d}, but got {:d} and {:d}'.format(size, len(mean), len(std)))
-        
+
         self.mean = mean
         self.std = std
         self.mean_sq = self.calc_mean_sq(self.mean, self.std)

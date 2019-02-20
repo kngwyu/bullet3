@@ -2,7 +2,7 @@
 import os, inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(os.path.dirname(currentdir))
-os.sys.path.insert(0,parentdir)
+os.sys.path.insert(0, parentdir)
 
 import gym
 from pybullet_envs.bullet.racecarGymEnv import RacecarGymEnv
@@ -10,7 +10,6 @@ from pybullet_envs.bullet.racecarGymEnv import RacecarGymEnv
 from baselines import deepq
 
 import datetime
-
 
 
 def callback(lcl, glb):
@@ -22,8 +21,8 @@ def callback(lcl, glb):
 
 
 def main():
-  
-    env = RacecarGymEnv(renders=False,isDiscrete=True)
+
+    env = RacecarGymEnv(renders=False, isDiscrete=True)
     model = deepq.models.mlp([64])
     act = deepq.learn(
         env,
@@ -34,8 +33,7 @@ def main():
         exploration_fraction=0.1,
         exploration_final_eps=0.02,
         print_freq=10,
-        callback=callback
-    )
+        callback=callback)
     print("Saving model to racecar_model.pkl")
     act.save("racecar_model.pkl")
 
